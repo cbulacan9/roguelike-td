@@ -1,0 +1,120 @@
+# map_grid.gd
+extends Node3D
+class_name MapGrid
+
+@export var grid_size: Vector2i = Vector2i(20, 20)
+@export var cell_size: float = 2.0
+@export var buildable_area_material: StandardMaterial3D
+@export var occupied_material: StandardMaterial3D
+
+var grid_data: Array = []
+var cell_meshes: Array = []
+
+enum CellState {
+	UNBUILDABLE,
+	BUILDABLE,
+	OCCUPIED,
+	PATH
+}
+
+func _ready():
+	initialize_grid()
+	create_materials_if_needed()
+	create_visual_grid()
+
+func initialize_grid():
+	grid_data = []
+	for x in grid_size.x:
+		var row = []
+		for y in grid_size.y:
+			row.append(CellState.BUILDABLE)
+		grid_data.append(row)
+
+func create_materials_if_needed():
+	if not buildable_area_material:
+		buildable_area_material = StandardMaterial3D.new()
+		buildable_area_material.albedo_color = Color(0.3, 0.8, 0.3, 0.3)
+		buildable_area_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	
+	if not occupied_material:
+		occupied_material = StandardMaterial3D.new()
+		occupied_material.albedo_color = Color(0.8, 0.2, 0.2, 0.5)
+		occupied_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+
+# UPDATED: Centers the grid over the origin
+func grid_to_world(grid_pos: Vector2i) -> Vector3:
+	# Calculate the world position, centered at origin
+	var half_grid_size = Vector2(grid_size) * cell_size / 2.0
+	
+	return Vector3(
+		grid_pos.x * cell_size + cell_size / 2.0 - half_grid_size.x,
+		0,
+		grid_pos.y * cell_size + cell_size / 2.0 - half_grid_size.y
+	)
+
+# UPDATED: Converts world position to grid, accounting for centering
+func world_to_grid(world_pos: Vector3) -> Vector2i:
+	# Offset by half the grid size to account for centering
+	var half_grid_size = Vector2(grid_size) * cell_size / 2.0
+	
+	var x = int((world_pos.x + half_grid_size.x) / cell_size)
+	var z = int((world_pos.z + half_grid_size.y) / cell_size)
+	
+	return Vector2i(x, z)
+
+func is_valid_build_position(grid_pos: Vector2i) -> bool:
+	if grid_pos.x < 0 or grid_pos.x >= grid_size.x:
+		return false
+	if grid_pos.y < 0 or grid_pos.y >= grid_size.y:
+		return false
+	return grid_data[grid_pos.x][grid_pos.y] == CellState.BUILDABLE
+
+func occupy_cell(grid_pos: Vector2i):
+	if is_valid_build_position(grid_pos):
+		grid_data[grid_pos.x][grid_pos.y] = CellState.OCCUPIED
+		update_cell_visual(grid_pos)
+
+func free_cell(grid_pos: Vector2i):
+	if grid_pos.x >= 0 and grid_pos.x < grid_size.x and grid_pos.y >= 0 and grid_pos.y < grid_size.y:
+		if grid_data[grid_pos.x][grid_pos.y] == CellState.OCCUPIED:
+			grid_data[grid_pos.x][grid_pos.y] = CellState.BUILDABLE
+			update_cell_visual(grid_pos)
+
+func update_cell_visual(grid_pos: Vector2i):
+	var world_pos = grid_to_world(grid_pos)
+	
+	for mesh in cell_meshes:
+		if mesh.position.distance_to(world_pos) < 0.1:
+			match grid_data[grid_pos.x][grid_pos.y]:
+				CellState.OCCUPIED:
+					mesh.material_override = occupied_material
+				CellState.BUILDABLE:
+					mesh.material_override = buildable_area_material
+				CellState.PATH:
+					var path_mat = StandardMaterial3D.new()
+					path_mat.albedo_color = Color(0.8, 0.6, 0.3, 0.5)
+					path_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+					mesh.material_override = path_mat
+			break
+
+func create_visual_grid():
+	for x in grid_size.x:
+		for y in grid_size.y:
+			if grid_data[x][y] == CellState.BUILDABLE:
+				var mesh_instance = MeshInstance3D.new()
+				var plane_mesh = PlaneMesh.new()
+				plane_mesh.size = Vector2(cell_size * 0.9, cell_size * 0.9)
+				mesh_instance.mesh = plane_mesh
+				mesh_instance.material_override = buildable_area_material
+				mesh_instance.position = grid_to_world(Vector2i(x, y))
+				mesh_instance.position.y = 0.01
+				mesh_instance.name = "GridCell_%d_%d" % [x, y]
+				mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+				add_child(mesh_instance)
+				cell_meshes.append(mesh_instance)
+
+func mark_path_cells(path_grid_positions: Array[Vector2i]):
+	for pos in path_grid_positions:
+		if pos.x >= 0 and pos.x < grid_size.x and pos.y >= 0 and pos.y < grid_size.y:
+			grid_data[pos.x][pos.y] = CellState.PATH
+			update_cell_visual(pos)

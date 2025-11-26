@@ -1,0 +1,27 @@
+[gd_scene load_steps=5 format=3 uid="uid://da8i470yk00c4"]
+
+[ext_resource type="Script" uid="uid://ctknvxgtl4k0p" path="res://addons/ai_assistant_hub/assistants/basic_projectile.gd" id="1_rt2p0"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_lspek"]
+radius = 0.05
+height = 0.2
+is_hemisphere = true
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rt2p0"]
+albedo_color = Color(0.46031, 0.170836, 0, 1)
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_lspek"]
+radius = 0.1
+
+[node name="BasicProjectile" type="Node3D"]
+script = ExtResource("1_rt2p0")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.101039, 0)
+mesh = SubResource("SphereMesh_lspek")
+surface_material_override/0 = SubResource("StandardMaterial3D_rt2p0")
+
+[node name="HitArea" type="Area3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="HitArea"]
+shape = SubResource("SphereShape3D_lspek")

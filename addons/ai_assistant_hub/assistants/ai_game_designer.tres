@@ -1,0 +1,64 @@
+[gd_resource type="Resource" script_class="AIAssistantResource" load_steps=9 format=3 uid="uid://ceqlrdtwxypk3"]
+
+[ext_resource type="Resource" uid="uid://c0xq2vafep0gu" path="res://addons/ai_assistant_hub/llm_providers/ollama.tres" id="1_p55mi"]
+[ext_resource type="Script" uid="uid://bv2ia3sn65fs6" path="res://addons/ai_assistant_hub/quick_prompts/ai_quick_prompt_resource.gd" id="2_876j3"]
+[ext_resource type="Script" uid="uid://cqkrmqopbbgpi" path="res://addons/ai_assistant_hub/assistants/ai_assistant_resource.gd" id="3_rnvr0"]
+[ext_resource type="Texture2D" uid="uid://qjvopjqelt0m" path="res://addons/ai_assistant_hub/graphics/icons/linear_32_3dmsicons.png" id="4_876j3"]
+
+[sub_resource type="Resource" id="Resource_876j3"]
+script = ExtResource("2_876j3")
+action_name = "Basic Enemy Type"
+action_prompt = "Design a basic enemy type"
+response_target = 0
+code_placement = 0
+format_response_as_comment = false
+metadata/_custom_type_script = "uid://bv2ia3sn65fs6"
+
+[sub_resource type="Resource" id="Resource_rnvr0"]
+script = ExtResource("2_876j3")
+action_name = "Basic Tower"
+action_prompt = "Design a basic tower type."
+response_target = 0
+code_placement = 0
+format_response_as_comment = false
+metadata/_custom_type_script = "uid://bv2ia3sn65fs6"
+
+[sub_resource type="Resource" id="Resource_4s4r2"]
+script = ExtResource("2_876j3")
+action_name = "Simple Level"
+action_prompt = "Design a simple level layout."
+response_target = 0
+code_placement = 0
+format_response_as_comment = false
+metadata/_custom_type_script = "uid://bv2ia3sn65fs6"
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_rnvr0"]
+atlas = ExtResource("4_876j3")
+region = Rect2(832, 288, 32, 32)
+
+[resource]
+script = ExtResource("3_rnvr0")
+type_name = "Game Designer"
+type_icon = SubResource("AtlasTexture_rnvr0")
+ai_model = "llama3.2:latest"
+llm_provider = ExtResource("1_p55mi")
+ai_description = "You are a tower defense game designer focused on rapid prototyping.
+
+Keep designs simple and test-friendly. Use tables for stats. Keep descriptions under 3 sentences each.
+
+When designing enemies, provide:
+- Name | HP | Speed | Reward | One special trait
+
+When designing towers, provide:
+- Name | Damage | Range | Attack Speed | Cost | One special ability
+
+When designing levels, provide:
+- Path description (simple: straight, curved, maze)
+- Number of tower spots
+- Difficulty rating (Easy/Medium/Hard)
+
+Always prioritize \"quick to implement\" over \"perfectly balanced\". We'll balance later.
+"
+use_custom_temperature = false
+custom_temperature = 0.5
+quick_prompts = Array[ExtResource("2_876j3")]([SubResource("Resource_876j3"), SubResource("Resource_rnvr0"), SubResource("Resource_4s4r2")])

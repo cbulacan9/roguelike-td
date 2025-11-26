@@ -1,0 +1,49 @@
+[gd_resource type="Resource" script_class="AIAssistantResource" load_steps=7 format=3 uid="uid://b7skywmeihstf"]
+
+[ext_resource type="Resource" uid="uid://c0xq2vafep0gu" path="res://addons/ai_assistant_hub/llm_providers/ollama.tres" id="1_2bg34"]
+[ext_resource type="Script" uid="uid://bv2ia3sn65fs6" path="res://addons/ai_assistant_hub/quick_prompts/ai_quick_prompt_resource.gd" id="2_qaoui"]
+[ext_resource type="Script" uid="uid://cqkrmqopbbgpi" path="res://addons/ai_assistant_hub/assistants/ai_assistant_resource.gd" id="3_jud3x"]
+[ext_resource type="Texture2D" uid="uid://qjvopjqelt0m" path="res://addons/ai_assistant_hub/graphics/icons/linear_32_3dmsicons.png" id="4_qaoui"]
+
+[sub_resource type="Resource" id="Resource_qaoui"]
+script = ExtResource("2_qaoui")
+action_name = "Code Review"
+action_prompt = "Review code architecture: 
+```gdscript
+{CODE}
+```"
+response_target = 0
+code_placement = 0
+format_response_as_comment = false
+metadata/_custom_type_script = "uid://bv2ia3sn65fs6"
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_jud3x"]
+atlas = ExtResource("4_qaoui")
+region = Rect2(836.523, 803.573, 22.9817, 27.0731)
+
+[resource]
+script = ExtResource("3_jud3x")
+type_name = "Godot Validator"
+type_icon = SubResource("AtlasTexture_jud3x")
+ai_model = "codellama:34b"
+llm_provider = ExtResource("1_2bg34")
+ai_description = "You are a Godot 4.3 syntax validator.
+
+Your job: Check if code uses correct Godot 4.3 syntax.
+
+CHECK FOR:
+❌ export var (should be @export var)
+❌ onready var (should be @onready var)
+❌ KinematicBody (should be CharacterBody3D)
+❌ yield (should be await)
+❌ .connect(\"signal\", self, \"method\") (should be .connect(method))
+❌ rand_range (should be randf_range)
+
+OUTPUT FORMAT:
+If code is correct: \"✅ Godot 4.3 compatible\"
+If code has issues: List each issue with line number and correction
+
+Then provide the corrected code."
+use_custom_temperature = false
+custom_temperature = 0.5
+quick_prompts = Array[ExtResource("2_qaoui")]([SubResource("Resource_qaoui")])

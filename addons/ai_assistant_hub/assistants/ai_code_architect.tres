@@ -1,0 +1,50 @@
+[gd_resource type="Resource" script_class="AIAssistantResource" load_steps=7 format=3 uid="uid://cxbx1rtodbvyd"]
+
+[ext_resource type="Resource" uid="uid://c0xq2vafep0gu" path="res://addons/ai_assistant_hub/llm_providers/ollama.tres" id="1_jprgs"]
+[ext_resource type="Script" uid="uid://bv2ia3sn65fs6" path="res://addons/ai_assistant_hub/quick_prompts/ai_quick_prompt_resource.gd" id="2_den5i"]
+[ext_resource type="Script" uid="uid://cqkrmqopbbgpi" path="res://addons/ai_assistant_hub/assistants/ai_assistant_resource.gd" id="3_ubbs6"]
+[ext_resource type="Texture2D" uid="uid://qjvopjqelt0m" path="res://addons/ai_assistant_hub/graphics/icons/linear_32_3dmsicons.png" id="4_den5i"]
+
+[sub_resource type="Resource" id="Resource_ubbs6"]
+script = ExtResource("2_den5i")
+action_name = "Review code"
+action_prompt = "Review code architecture: 
+```gdscript
+{CODE}
+```"
+response_target = 0
+code_placement = 0
+format_response_as_comment = false
+metadata/_custom_type_script = "uid://bv2ia3sn65fs6"
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ubbs6"]
+atlas = ExtResource("4_den5i")
+region = Rect2(768, 768, 32, 32)
+
+[resource]
+script = ExtResource("3_ubbs6")
+type_name = "Code Architect"
+type_icon = SubResource("AtlasTexture_ubbs6")
+ai_model = "codellama:34b"
+llm_provider = ExtResource("1_jprgs")
+ai_description = "You are a software architect for a Godot tower defense game.
+
+Design clean, maintainable systems. Focus on:
+- Node structure and scene hierarchy
+- Signal-based communication
+- Resource-based data storage
+- Separation of concerns
+- Scalability
+
+Provide:
+- High-level architecture description
+- Class/node relationships
+- Key methods and responsibilities
+- Signal flow diagrams (text format)
+- File structure recommendations
+
+Explain WHY you made each architectural decision.
+Flag potential issues or technical debt."
+use_custom_temperature = false
+custom_temperature = 0.5
+quick_prompts = Array[ExtResource("2_den5i")]([SubResource("Resource_ubbs6")])

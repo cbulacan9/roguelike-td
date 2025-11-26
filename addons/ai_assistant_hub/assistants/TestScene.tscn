@@ -1,0 +1,51 @@
+[gd_scene load_steps=8 format=3 uid="uid://dbdocy1bsd6mk"]
+
+[ext_resource type="Script" uid="uid://bvjqemg0nn06r" path="res://addons/ai_assistant_hub/assistants/goblin.gd" id="1_gjif4"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_6i2p0"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_o3fcm"]
+render_priority = 1
+albedo_color = Color(0, 0.494072, 0.936955, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_b7cy5"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_o1eh1"]
+size = Vector3(15, 1, 15)
+
+[sub_resource type="BoxMesh" id="BoxMesh_gjif4"]
+size = Vector3(15, 1, 15)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_tjxjq"]
+albedo_color = Color(0.872296, 0.404369, 0.160742, 1)
+
+[node name="Node3D" type="Node3D"]
+
+[node name="Goblin" type="CharacterBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.71047, 0)
+script = ExtResource("1_gjif4")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Goblin"]
+shape = SubResource("SphereShape3D_6i2p0")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Goblin"]
+material_override = SubResource("StandardMaterial3D_o3fcm")
+mesh = SubResource("SphereMesh_b7cy5")
+skeleton = NodePath("../CollisionShape3D")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(0.00686985, 0.721762, -0.692108, -0.0763438, 0.690483, 0.719309, 0.997058, 0.0478966, 0.0598455, -10.7272, 6.81598, 0)
+
+[node name="StaticBody3D" type="StaticBody3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D"]
+shape = SubResource("BoxShape3D_o1eh1")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="StaticBody3D"]
+mesh = SubResource("BoxMesh_gjif4")
+skeleton = NodePath("../CollisionShape3D")
+surface_material_override/0 = SubResource("StandardMaterial3D_tjxjq")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.99352, -4.44089e-16, 0.113654, 0.112024, -0.16873, 0.979276, 0.0191768, 0.985662, 0.167637, 0, 5.3629, -13.9865)
+light_energy = 4.0

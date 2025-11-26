@@ -1,0 +1,22 @@
+[gd_scene load_steps=5 format=3 uid="uid://c5lulckpidibf"]
+
+[ext_resource type="Script" uid="uid://bvjqemg0nn06r" path="res://addons/ai_assistant_hub/assistants/goblin.gd" id="1_dl46o"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_6i2p0"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_o3fcm"]
+render_priority = 1
+albedo_color = Color(0, 0.494072, 0.936955, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_b7cy5"]
+
+[node name="Goblin" type="CharacterBody3D"]
+script = ExtResource("1_dl46o")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("SphereShape3D_6i2p0")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+material_override = SubResource("StandardMaterial3D_o3fcm")
+mesh = SubResource("SphereMesh_b7cy5")
+skeleton = NodePath("../CollisionShape3D")
