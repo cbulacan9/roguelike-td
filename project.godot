@@ -19,6 +19,7 @@ config/icon="res://icon.svg"
 
 GameManager="*res://game_manager.gd"
 GameUIManager="*res://ui/game_ui_manager.gd"
+MusicManager="*res://music_manager.gd"
 
 [editor_plugins]
 
