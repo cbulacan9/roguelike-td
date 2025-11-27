@@ -1,0 +1,37 @@
+[gd_scene load_steps=2 format=3 uid="uid://dovh2sqs3wwm6"]
+
+[ext_resource type="Script" uid="uid://pg40g51o7cap" path="res://ui/resource_display.gd" id="1_alkvs"]
+
+[node name="ResourceDisplay" type="MarginContainer"]
+offset_right = 40.0
+offset_bottom = 40.0
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 24
+script = ExtResource("1_alkvs")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="GoldContainer" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="GoldLabel" type="Label" parent="VBoxContainer/GoldContainer"]
+layout_mode = 2
+text = "Gold: 0"
+
+[node name="LivesContainer" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="LivesLabel" type="Label" parent="VBoxContainer/LivesContainer"]
+layout_mode = 2
+text = "Lives: 100"
+
+[node name="WaveContainer" type="VBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="WaveLabel" type="Label" parent="VBoxContainer/WaveContainer"]
+layout_mode = 2
+text = "Wave: 1"

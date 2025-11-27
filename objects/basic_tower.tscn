@@ -1,32 +1,27 @@
 [gd_scene load_steps=7 format=3 uid="uid://cs4fp0c7leat0"]
 
-[ext_resource type="Script" uid="uid://bvdmqof3jr57j" path="res://addons/ai_assistant_hub/assistants/basic_tower.gd" id="1_abcph"]
+[ext_resource type="Script" uid="uid://bvdmqof3jr57j" path="res://objects/basic_tower.gd" id="1_abcph"]
+[ext_resource type="PackedScene" uid="uid://dsobhkg01lw2h" path="res://objects/basic_projectile.tscn" id="2_h150f"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_4jjp2"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_3goyh"]
+vertex_color_use_as_albedo = true
 albedo_color = Color(0.842277, 0.562752, 0.663473, 1)
-
-[sub_resource type="PrismMesh" id="PrismMesh_y7cfu"]
-size = Vector3(1, 0.5, 1)
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_4jjp2"]
-albedo_color = Color(1, 0.0747147, 0.9745, 1)
+albedo_texture_force_srgb = true
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_y7cfu"]
 radius = 3.0
 
-[node name="BasicTower" type="Node3D"]
+[sub_resource type="BoxShape3D" id="BoxShape3D_h150f"]
+
+[node name="BasicTower" type="StaticBody3D"]
 script = ExtResource("1_abcph")
+projectile_scene = ExtResource("2_h150f")
 
 [node name="Walls" type="MeshInstance3D" parent="."]
 mesh = SubResource("BoxMesh_4jjp2")
 surface_material_override/0 = SubResource("StandardMaterial3D_3goyh")
-
-[node name="Roof" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.753232, 0)
-mesh = SubResource("PrismMesh_y7cfu")
-surface_material_override/0 = SubResource("StandardMaterial3D_4jjp2")
 
 [node name="Area3D" type="Area3D" parent="."]
 
@@ -36,3 +31,8 @@ shape = SubResource("SphereShape3D_y7cfu")
 [node name="Timer" type="Timer" parent="."]
 
 [node name="NavigationObstacle3D" type="NavigationObstacle3D" parent="."]
+radius = 1.0
+height = 2.0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_h150f")

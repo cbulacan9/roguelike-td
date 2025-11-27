@@ -1,0 +1,25 @@
+[gd_scene load_steps=5 format=3 uid="uid://bjlpvt05q24m8"]
+
+[ext_resource type="Script" uid="uid://ycs6b4mkktbm" path="res://objects/enemy.gd" id="1_882u1"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_2gpic"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_882u1"]
+albedo_color = Color(0.945098, 0, 0.101961, 1)
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_7jlpp"]
+
+[node name="Enemy" type="CharacterBody3D"]
+collision_layer = 2
+script = ExtResource("1_882u1")
+max_health = 300.0
+
+[node name="NavigationAgent3D" type="NavigationAgent3D" parent="."]
+avoidance_enabled = true
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("SphereMesh_2gpic")
+surface_material_override/0 = SubResource("StandardMaterial3D_882u1")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("SphereShape3D_7jlpp")

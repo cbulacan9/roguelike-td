@@ -1,0 +1,189 @@
+[gd_scene load_steps=10 format=3 uid="uid://bt7u1nwjysnoe"]
+
+[ext_resource type="Script" uid="uid://des3dyj0vknou" path="res://map/tower_placement_manager.gd" id="3_riv5j"]
+[ext_resource type="Script" uid="uid://bwsmjhhu8k7ix" path="res://map/camera_controller.gd" id="3_w6ita"]
+[ext_resource type="PackedScene" uid="uid://cs4fp0c7leat0" path="res://objects/basic_tower.tscn" id="4_icj8p"]
+[ext_resource type="Script" uid="uid://dbfl7ml2yywqo" path="res://map/world_lighting.gd" id="6_icj8p"]
+
+[sub_resource type="NavigationMesh" id="NavigationMesh_qb2ax"]
+vertices = PackedVector3Array(-19.5, 0, -19.5, -19.5, 0, 19.5, 19.5, 0, 19.5, 19.5, 0, -19.5)
+polygons = [PackedInt32Array(3, 2, 0), PackedInt32Array(0, 2, 1)]
+agent_height = 2.0
+agent_max_climb = 0.9
+
+[sub_resource type="BoxMesh" id="BoxMesh_w6ita"]
+size = Vector3(40, 1, 40)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_qb2ax"]
+albedo_color = Color(0.653795, 0.688311, 0.679961, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_c2mfs"]
+size = Vector3(40, 1, 40)
+
+[sub_resource type="GDScript" id="GDScript_c2mfs"]
+script/source = "extends Node3D
+class_name MapGrid
+
+@export var grid_size: Vector2i = Vector2i(20, 20)
+@export var cell_size: float = 2.0
+@export var buildable_area_material: StandardMaterial3D
+@export var occupied_material: StandardMaterial3D
+
+var grid_data: Array = []  # 2D array to track cell states
+var cell_meshes: Array = []  # Visual representation of cells
+
+enum CellState {
+	UNBUILDABLE,
+	BUILDABLE,
+	OCCUPIED,
+	PATH
+}
+
+func _ready():
+	initialize_grid()
+	create_visual_grid()
+
+func initialize_grid():
+	grid_data = []
+	for x in grid_size.x:
+		var row = []
+		for y in grid_size.y:
+			row.append(CellState.BUILDABLE)  # Default all to buildable
+		grid_data.append(row)
+
+func world_to_grid(world_pos: Vector3) -> Vector2i:
+	var x = int(world_pos.x / cell_size)
+	var z = int(world_pos.z / cell_size)
+	return Vector2i(x, z)
+
+func grid_to_world(grid_pos: Vector2i) -> Vector3:
+	return Vector3(
+		grid_pos.x * cell_size + cell_size / 2.0,
+		0,
+		grid_pos.y * cell_size + cell_size / 2.0
+	)
+
+func is_valid_build_position(grid_pos: Vector2i) -> bool:
+	if grid_pos.x < 0 or grid_pos.x >= grid_size.x:
+		return false
+	if grid_pos.y < 0 or grid_pos.y >= grid_size.y:
+		return false
+	return grid_data[grid_pos.x][grid_pos.y] == CellState.BUILDABLE
+
+func occupy_cell(grid_pos: Vector2i):
+	if is_valid_build_position(grid_pos):
+		grid_data[grid_pos.x][grid_pos.y] = CellState.OCCUPIED
+		update_cell_visual(grid_pos)
+
+func create_visual_grid():
+	# Create visual indicators for buildable areas
+	for x in grid_size.x:
+		for y in grid_size.y:
+			if grid_data[x][y] == CellState.BUILDABLE:
+				var mesh_instance = MeshInstance3D.new()
+				var plane_mesh = PlaneMesh.new()
+				plane_mesh.size = Vector2(cell_size * 0.9, cell_size * 0.9)
+				mesh_instance.mesh = plane_mesh
+				mesh_instance.material_override = buildable_area_material
+				mesh_instance.position = grid_to_world(Vector2i(x, y))
+				mesh_instance.position.y = 0.01  # Slightly above ground to avoid z-fighting
+				add_child(mesh_instance)
+				cell_meshes.append(mesh_instance)
+
+func update_cell_visual(grid_pos: Vector2i):
+	# Find the visual mesh for this grid position and update its material
+	var world_pos = grid_to_world(grid_pos)
+	
+	# Find the cell mesh at this position
+	for mesh in cell_meshes:
+		if mesh.position.distance_to(world_pos) < 0.1:
+			# Update material based on cell state
+			match grid_data[grid_pos.x][grid_pos.y]:
+				CellState.OCCUPIED:
+					if occupied_material:
+						mesh.material_override = occupied_material
+				CellState.BUILDABLE:
+					if buildable_area_material:
+						mesh.material_override = buildable_area_material
+				CellState.PATH:
+					# Optional: create a path material
+					var path_mat = StandardMaterial3D.new()
+					path_mat.albedo_color = Color(0.8, 0.6, 0.3, 0.5)
+					mesh.material_override = path_mat
+			break
+
+# In your MapGrid script from before
+func mark_path_cells(path_grid_positions: Array[Vector2i]):
+	for pos in path_grid_positions:
+		if pos.x >= 0 and pos.x < grid_size.x and pos.y >= 0 and pos.y < grid_size.y:
+			grid_data[pos.x][pos.y] = CellState.PATH
+			# Optionally create a visual indicator
+			create_path_visual(pos)
+
+func create_path_visual(grid_pos: Vector2i):
+	var mesh_instance = MeshInstance3D.new()
+	var plane_mesh = PlaneMesh.new()
+	plane_mesh.size = Vector2(cell_size * 0.95, cell_size * 0.95)
+	mesh_instance.mesh = plane_mesh
+	
+	# Different material for path
+	var path_mat = StandardMaterial3D.new()
+	path_mat.albedo_color = Color(0.8, 0.6, 0.3, 0.5)
+	mesh_instance.material_override = path_mat
+	
+	mesh_instance.position = grid_to_world(grid_pos)
+	mesh_instance.position.y = 0.02  # Slightly above buildable areas
+	add_child(mesh_instance)
+"
+
+[node name="World" type="Node3D"]
+
+[node name="Camera3D" type="Camera3D" parent="."]
+script = ExtResource("3_w6ita")
+
+[node name="NavigationRegion3D" type="NavigationRegion3D" parent="."]
+navigation_mesh = SubResource("NavigationMesh_qb2ax")
+
+[node name="Ground" type="StaticBody3D" parent="NavigationRegion3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+collision_mask = 0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="NavigationRegion3D/Ground"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+mesh = SubResource("BoxMesh_w6ita")
+skeleton = NodePath("")
+surface_material_override/0 = SubResource("StandardMaterial3D_qb2ax")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="NavigationRegion3D/Ground"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+shape = SubResource("BoxShape3D_c2mfs")
+
+[node name="MapGrid" type="Node3D" parent="."]
+script = SubResource("GDScript_c2mfs")
+grid_size = null
+cell_size = null
+
+[node name="Towers" type="Node3D" parent="."]
+
+[node name="TowerPlacementManager" type="Node3D" parent="." node_paths=PackedStringArray("map_grid", "camera")]
+script = ExtResource("3_riv5j")
+tower_scene = ExtResource("4_icj8p")
+map_grid = NodePath("../MapGrid")
+camera = NodePath("../Camera3D")
+
+[node name="Enemies" type="Node3D" parent="."]
+
+[node name="PathManager" type="Node3D" parent="."]
+
+[node name="SpawnPoint1" type="Marker3D" parent="PathManager"]
+
+[node name="SpawnPoint2" type="Marker3D" parent="PathManager"]
+
+[node name="GoalMarker" type="Marker3D" parent="PathManager"]
+
+[node name="Test" type="Node3D" parent="."]
+
+[node name="Lighting" type="Node3D" parent="."]
+script = ExtResource("6_icj8p")
+
+[node name="Sun" type="DirectionalLight3D" parent="Lighting"]

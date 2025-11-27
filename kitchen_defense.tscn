@@ -1,0 +1,106 @@
+[gd_scene load_steps=13 format=3 uid="uid://cp4tfby4aqknq"]
+
+[ext_resource type="Script" uid="uid://bwsmjhhu8k7ix" path="res://map/camera_controller.gd" id="1_ipvny"]
+[ext_resource type="Script" uid="uid://bfxnrp24xgt2r" path="res://map/map_grid.gd" id="2_uimrl"]
+[ext_resource type="Script" uid="uid://des3dyj0vknou" path="res://map/tower_placement_manager.gd" id="3_be06q"]
+[ext_resource type="PackedScene" uid="uid://cs4fp0c7leat0" path="res://objects/basic_tower.tscn" id="4_fc4gu"]
+[ext_resource type="Script" uid="uid://dbfl7ml2yywqo" path="res://map/world_lighting.gd" id="6_cyulq"]
+[ext_resource type="Script" uid="uid://dgjcxq27rrxer" path="res://objects/enemy_spawner.gd" id="7_be06q"]
+[ext_resource type="PackedScene" uid="uid://bjlpvt05q24m8" path="res://objects/enemy.tscn" id="8_fc4gu"]
+[ext_resource type="PackedScene" uid="uid://dovh2sqs3wwm6" path="res://ui/resource_display.tscn" id="9_fc4gu"]
+
+[sub_resource type="NavigationMesh" id="NavigationMesh_qb2ax"]
+vertices = PackedVector3Array(-19.25, 0, -19.25, -19.25, 0, 19.25, 19.25, 0, 19.25, 19.25, 0, -19.25)
+polygons = [PackedInt32Array(3, 2, 0), PackedInt32Array(0, 2, 1)]
+agent_height = 2.0
+agent_radius = 0.6
+agent_max_climb = 0.5
+
+[sub_resource type="BoxMesh" id="BoxMesh_w6ita"]
+size = Vector3(40, 1, 40)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_qb2ax"]
+albedo_color = Color(0.653795, 0.688311, 0.679961, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_c2mfs"]
+size = Vector3(40, 1, 40)
+
+[node name="Main" type="Node3D"]
+
+[node name="World" type="Node3D" parent="." groups=["level"]]
+
+[node name="Camera3D" type="Camera3D" parent="World"]
+script = ExtResource("1_ipvny")
+
+[node name="NavigationRegion3D" type="NavigationRegion3D" parent="World"]
+navigation_mesh = SubResource("NavigationMesh_qb2ax")
+
+[node name="Ground" type="StaticBody3D" parent="World/NavigationRegion3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+collision_mask = 0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="World/NavigationRegion3D/Ground"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+mesh = SubResource("BoxMesh_w6ita")
+skeleton = NodePath("")
+surface_material_override/0 = SubResource("StandardMaterial3D_qb2ax")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="World/NavigationRegion3D/Ground"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+shape = SubResource("BoxShape3D_c2mfs")
+
+[node name="MapGrid" type="Node3D" parent="World"]
+script = ExtResource("2_uimrl")
+
+[node name="Towers" type="Node3D" parent="World"]
+
+[node name="TowerPlacementManager" type="Node3D" parent="World" node_paths=PackedStringArray("map_grid", "camera")]
+script = ExtResource("3_be06q")
+tower_scene = ExtResource("4_fc4gu")
+map_grid = NodePath("../MapGrid")
+camera = NodePath("../Camera3D")
+
+[node name="Enemies" type="Node3D" parent="World"]
+
+[node name="PathManager" type="Node3D" parent="World"]
+
+[node name="SpawnPoint1" type="Marker3D" parent="World/PathManager"]
+transform = Transform3D(0.882848, -0.439077, -0.166708, 0.399857, 0.888885, -0.223601, 0.246363, 0.130747, 0.960318, 16.5903, 0, 16.4136)
+
+[node name="SpawnPoint2" type="Marker3D" parent="World/PathManager"]
+
+[node name="EndPoint" type="Marker3D" parent="World/PathManager"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18.5158, 0, -18.3228)
+
+[node name="Test" type="Node3D" parent="World"]
+
+[node name="Lighting" type="Node3D" parent="World"]
+script = ExtResource("6_cyulq")
+
+[node name="Sun" type="DirectionalLight3D" parent="World/Lighting"]
+
+[node name="EnemySpawner" type="Node3D" parent="World" node_paths=PackedStringArray("spawn_position")]
+script = ExtResource("7_be06q")
+enemy_scene = ExtResource("8_fc4gu")
+spawn_position = NodePath("../PathManager/SpawnPoint1")
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="HUD" type="Control" parent="UI"]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="ResourceDisplay" parent="UI/HUD" instance=ExtResource("9_fc4gu")]
+layout_mode = 0
+
+[node name="ScoreDisplay" type="MarginContainer" parent="UI/HUD"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="BuildMenu" type="Panel" parent="UI/HUD"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0

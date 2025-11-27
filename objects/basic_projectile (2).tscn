@@ -1,6 +1,6 @@
 [gd_scene load_steps=5 format=3 uid="uid://da8i470yk00c4"]
 
-[ext_resource type="Script" uid="uid://ctknvxgtl4k0p" path="res://addons/ai_assistant_hub/assistants/basic_projectile.gd" id="1_rt2p0"]
+[ext_resource type="Script" uid="uid://ctknvxgtl4k0p" path="res://objects/basic_projectile.gd" id="1_rt2p0"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_lspek"]
 radius = 0.05
