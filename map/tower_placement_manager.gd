@@ -22,6 +22,10 @@ var interaction_mode: InteractionMode = InteractionMode.PLACE
 signal tower_placed(tower: Node3D, grid_pos: Vector2i)
 signal tower_removed(grid_pos: Vector2i)
 
+# Path validation references
+var spawn_point: Node3D = null
+var end_point: Node3D = null
+
 func _ready() -> void:
 	create_preview_mesh()
 	
@@ -36,6 +40,14 @@ func _ready() -> void:
 		navigation_region = get_tree().current_scene.get_node_or_null("World/NavigationRegion3D")
 		if navigation_region:
 			print("Found NavigationRegion3D: ", navigation_region.name)
+	
+	# Find spawn and end points for path validation
+	var path_manager = get_tree().current_scene.get_node_or_null("World/PathManager")
+	if path_manager:
+		spawn_point = path_manager.get_node_or_null("SpawnPoint")
+		end_point = path_manager.get_node_or_null("EndPoint")
+		if spawn_point and end_point:
+			print("Path validation enabled: spawn -> end")
 
 func create_preview_mesh() -> void:
 	preview_mesh = MeshInstance3D.new()
@@ -125,12 +137,18 @@ func update_preview() -> void:
 	preview_mesh.global_position = snapped_world_pos
 	preview_mesh.global_position.y = 1.5
 	
-	can_place = GameManager.can_afford_selected_tower()
+	# Check affordability AND path blocking
+	var can_afford = GameManager.can_afford_selected_tower()
+	var would_block = would_block_path(grid_pos)
+	can_place = can_afford and not would_block
 	
 	var material := preview_mesh.material_override as StandardMaterial3D
 	if GameManager.selected_tower:
 		if can_place:
 			material.albedo_color = GameManager.selected_tower.preview_color
+		elif would_block:
+			# Orange/yellow tint to indicate path blocking
+			material.albedo_color = Color(1.0, 0.5, 0.0, 0.5)
 		else:
 			material.albedo_color = Color(1, 0, 0, 0.5)
 	else:
@@ -227,6 +245,87 @@ func rebake_navigation_mesh() -> void:
 	# We need to wait for baking to finish
 	if not navigation_region.bake_finished.is_connected(_on_navmesh_bake_finished):
 		navigation_region.bake_finished.connect(_on_navmesh_bake_finished)
+
+## Check if placing a tower at this position would completely block the enemy path
+func would_block_path(grid_pos: Vector2i) -> bool:
+	# Skip check if we don't have spawn/end points configured
+	if not spawn_point or not end_point:
+		return false
+	
+	# Get the navigation map
+	var nav_map = get_world_3d().navigation_map
+	if not nav_map:
+		return false
+	
+	# Calculate where the tower would be placed
+	var tower_world_pos = map_grid.grid_to_world(grid_pos)
+	
+	# We need to simulate placing a tower and check if path still exists
+	# Since we can't easily simulate navmesh changes, we use a geometric approach:
+	# Check if this placement would create a wall across the entire path
+	
+	# Get current path from spawn to end
+	var current_path = NavigationServer3D.map_get_path(
+		nav_map,
+		spawn_point.global_position,
+		end_point.global_position,
+		true  # optimize path
+	)
+	
+	# If there's already no path, don't allow any more towers
+	if current_path.size() < 2:
+		return true
+	
+	# Check if this tower position is directly on or very close to the current path
+	# This should match the NavigationMesh agent_radius to prevent tight gaps
+	var tower_radius = 2.0  # Larger than agent_radius (1.0) to ensure comfortable gaps
+	
+	for i in range(current_path.size() - 1):
+		var path_point = current_path[i]
+		var next_point = current_path[i + 1]
+		
+		# Check distance from tower to path segment
+		var closest_on_segment = _closest_point_on_segment(tower_world_pos, path_point, next_point)
+		var distance_to_path = tower_world_pos.distance_to(closest_on_segment)
+		
+		# If tower is very close to the only path, it might block
+		if distance_to_path < tower_radius:
+			# Additional check: see if there's "room" around the tower
+			# by checking if alternative paths exist on either side
+			var path_dir = (next_point - path_point).normalized()
+			var perpendicular = Vector3(-path_dir.z, 0, path_dir.x)  # Perpendicular in XZ plane
+			
+			var check_distance = 3.0  # How far to check on each side
+			var left_point = tower_world_pos + perpendicular * check_distance
+			var right_point = tower_world_pos - perpendicular * check_distance
+			
+			# Check if we can path around on the left
+			var left_path = NavigationServer3D.map_get_path(nav_map, path_point, left_point, true)
+			var left_to_end = NavigationServer3D.map_get_path(nav_map, left_point, end_point.global_position, true)
+			var left_valid = left_path.size() > 1 and left_to_end.size() > 1
+			
+			# Check if we can path around on the right
+			var right_path = NavigationServer3D.map_get_path(nav_map, path_point, right_point, true)
+			var right_to_end = NavigationServer3D.map_get_path(nav_map, right_point, end_point.global_position, true)
+			var right_valid = right_path.size() > 1 and right_to_end.size() > 1
+			
+			# If neither side has a valid alternative path, this would block
+			if not left_valid and not right_valid:
+				return true
+	
+	return false
+
+## Helper: Find closest point on a line segment to a given point
+func _closest_point_on_segment(point: Vector3, seg_start: Vector3, seg_end: Vector3) -> Vector3:
+	var segment = seg_end - seg_start
+	var segment_length_sq = segment.length_squared()
+	
+	if segment_length_sq < 0.0001:
+		return seg_start
+	
+	# Project point onto the line, clamped to segment
+	var t = clamp((point - seg_start).dot(segment) / segment_length_sq, 0.0, 1.0)
+	return seg_start + segment * t
 
 func _on_navmesh_bake_finished() -> void:
 	print("Navigation mesh rebake complete - notifying enemies")

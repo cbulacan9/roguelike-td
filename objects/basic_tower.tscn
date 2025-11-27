@@ -1,19 +1,11 @@
-[gd_scene load_steps=7 format=3 uid="uid://cs4fp0c7leat0"]
+[gd_scene load_steps=5 format=3 uid="uid://cs4fp0c7leat0"]
 
 [ext_resource type="Script" uid="uid://bvdmqof3jr57j" path="res://objects/basic_tower.gd" id="1_abcph"]
 [ext_resource type="PackedScene" uid="uid://dsobhkg01lw2h" path="res://objects/basic_projectile.tscn" id="2_h150f"]
-
-[sub_resource type="BoxMesh" id="BoxMesh_4jjp2"]
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_3goyh"]
-vertex_color_use_as_albedo = true
-albedo_color = Color(0.842277, 0.562752, 0.663473, 1)
-albedo_texture_force_srgb = true
-
-[sub_resource type="SphereShape3D" id="SphereShape3D_y7cfu"]
-radius = 3.0
+[ext_resource type="PackedScene" path="res://models/toaster_tower.glb" id="3_toaster"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_h150f"]
+size = Vector3(1.0, 2.0, 1.0)
 
 [node name="BasicTower" type="StaticBody3D"]
 collision_layer = 1
@@ -21,22 +13,22 @@ collision_mask = 0
 script = ExtResource("1_abcph")
 projectile_scene = ExtResource("2_h150f")
 
-[node name="Walls" type="MeshInstance3D" parent="."]
-mesh = SubResource("BoxMesh_4jjp2")
-surface_material_override/0 = SubResource("StandardMaterial3D_3goyh")
+[node name="ToasterModel" type="Node3D" parent="."]
 
-[node name="Area3D" type="Area3D" parent="."]
+[node name="ModelInstance" parent="ToasterModel" instance=ExtResource("3_toaster")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, 0)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Area3D"]
-shape = SubResource("SphereShape3D_y7cfu")
+[node name="ProjectileSpawn" type="Marker3D" parent="ToasterModel"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.8, 0)
 
-[node name="Timer" type="Timer" parent="."]
+[node name="RangeArea3D" type="Area3D" parent="."]
+collision_layer = 0
+collision_mask = 2
 
 [node name="NavigationObstacle3D" type="NavigationObstacle3D" parent="."]
-radius = 1.0
+radius = 0.5
 height = 2.0
-avoidance_enabled = true
-affect_navigation_mesh = true
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0, 0)
 shape = SubResource("BoxShape3D_h150f")

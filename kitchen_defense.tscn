@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://cp4tfby4aqknq"]
+[gd_scene load_steps=16 format=3 uid="uid://cp4tfby4aqknq"]
 
 [ext_resource type="Script" uid="uid://bwsmjhhu8k7ix" path="res://map/camera_controller.gd" id="1_ipvny"]
 [ext_resource type="Script" uid="uid://bfxnrp24xgt2r" path="res://map/map_grid.gd" id="2_uimrl"]
@@ -10,6 +10,7 @@
 [ext_resource type="PackedScene" uid="uid://dovh2sqs3wwm6" path="res://ui/resource_display.tscn" id="9_fc4gu"]
 [ext_resource type="PackedScene" path="res://ui/wave_announcement.tscn" id="10_wave"]
 [ext_resource type="PackedScene" path="res://ui/tower_info_panel.tscn" id="11_tower_info"]
+[ext_resource type="Script" uid="uid://dilkoftknbfqg" path="res://map/kitchen_environment.gd" id="12_kitchen"]
 
 [sub_resource type="NavigationMesh" id="NavigationMesh_qb2ax"]
 vertices = PackedVector3Array(-19.25, 0, -19.25, -19.25, 0, 19.25, 19.25, 0, 19.25, 19.25, 0, -19.25)
@@ -17,7 +18,6 @@ polygons = [PackedInt32Array(3, 2, 0), PackedInt32Array(0, 2, 1)]
 geometry_parsed_geometry_type = 1
 geometry_collision_mask = 1
 agent_height = 2.0
-agent_radius = 0.6
 agent_max_climb = 0.5
 
 [sub_resource type="BoxMesh" id="BoxMesh_w6ita"]
@@ -58,6 +58,9 @@ shape = SubResource("BoxShape3D_c2mfs")
 [node name="MapGrid" type="Node3D" parent="World"]
 script = ExtResource("2_uimrl")
 
+[node name="KitchenEnvironment" type="Node3D" parent="World"]
+script = ExtResource("12_kitchen")
+
 [node name="TowerPlacementManager" type="Node3D" parent="World" node_paths=PackedStringArray("map_grid", "camera", "navigation_region")]
 script = ExtResource("3_be06q")
 map_grid = NodePath("../MapGrid")
@@ -69,12 +72,12 @@ navigation_region = NodePath("../NavigationRegion3D")
 [node name="PathManager" type="Node3D" parent="World"]
 
 [node name="SpawnPoint1" type="Marker3D" parent="World/PathManager"]
-transform = Transform3D(0.882848, -0.439077, -0.166708, 0.399857, 0.888885, -0.223601, 0.246363, 0.130747, 0.960318, 16.5903, 0, 16.4136)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, 0, 5)
 
 [node name="SpawnPoint2" type="Marker3D" parent="World/PathManager"]
 
 [node name="EndPoint" type="Marker3D" parent="World/PathManager"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18.5158, 0, -18.3228)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16.5, 0, -14.5)
 
 [node name="Test" type="Node3D" parent="World"]
 
@@ -82,6 +85,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18.5158, 0, -18.3228)
 script = ExtResource("6_cyulq")
 
 [node name="Sun" type="DirectionalLight3D" parent="World/Lighting"]
+sky_mode = 1
 
 [node name="EnemySpawner" type="Node3D" parent="World" node_paths=PackedStringArray("spawn_position")]
 script = ExtResource("7_be06q")
