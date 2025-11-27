@@ -296,121 +296,33 @@ func _register_unbuildable_areas() -> void:
 	
 	print("Kitchen obstacles registered with grid")
 
-## Creates a cartoon-style refrigerator with doors open (enemies are raiding it!)
+## Creates the fridge using the imported 3D model - the endpoint enemies are raiding!
 func _create_fridge(parent: Node3D, pos: Vector3) -> void:
 	var fridge = Node3D.new()
 	fridge.name = "Fridge"
 	fridge.position = pos
 	parent.add_child(fridge)
 	
+	# Load and instance the refrigerator model
+	var fridge_scene = load("res://models/refrigerator.glb")
+	if fridge_scene:
+		var fridge_model = fridge_scene.instantiate()
+		fridge_model.name = "RefrigeratorModel"
+		# Scale up the model to match the kitchen scale (original is ~2 units tall)
+		var scale_factor = 3.0  # Makes it ~6 units tall like the old fridge
+		fridge_model.scale = Vector3(scale_factor, scale_factor, scale_factor)
+		# No rotation needed - model already faces correct direction
+		fridge.add_child(fridge_model)
+		print("Refrigerator model loaded!")
+	else:
+		push_error("Could not load refrigerator model!")
+		return
+	
 	var fridge_width = 3.5
 	var fridge_depth = 2.5
 	var fridge_height = 6.0
-	var door_thickness = 0.15
 	
-	# Main body
-	var body = MeshInstance3D.new()
-	var body_mesh = BoxMesh.new()
-	body_mesh.size = Vector3(fridge_width, fridge_height, fridge_depth)
-	body.mesh = body_mesh
-	body.position.y = fridge_height / 2
-	
-	var body_mat = StandardMaterial3D.new()
-	body_mat.albedo_color = FRIDGE_WHITE
-	body_mat.roughness = 0.3
-	body_mat.metallic = 0.1
-	body.material_override = body_mat
-	fridge.add_child(body)
-	
-	# Interior (darker to show depth)
-	var interior = MeshInstance3D.new()
-	var interior_mesh = BoxMesh.new()
-	interior_mesh.size = Vector3(fridge_width - 0.2, fridge_height - 0.2, fridge_depth - 0.3)
-	interior.mesh = interior_mesh
-	interior.position = Vector3(0, fridge_height / 2, 0.1)
-	
-	var interior_mat = StandardMaterial3D.new()
-	interior_mat.albedo_color = Color(0.85, 0.88, 0.9)  # Slightly blue-white interior
-	interior_mat.roughness = 0.5
-	interior.material_override = interior_mat
-	fridge.add_child(interior)
-	
-	# Shelves inside
-	var shelf_mat = StandardMaterial3D.new()
-	shelf_mat.albedo_color = Color(0.8, 0.82, 0.85)
-	shelf_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	shelf_mat.albedo_color.a = 0.7
-	
-	for shelf_y in [1.5, 2.5, 3.5, 4.8]:
-		var shelf = MeshInstance3D.new()
-		var shelf_mesh = BoxMesh.new()
-		shelf_mesh.size = Vector3(fridge_width - 0.4, 0.08, fridge_depth - 0.5)
-		shelf.mesh = shelf_mesh
-		shelf.position = Vector3(0, shelf_y, 0.1)
-		shelf.material_override = shelf_mat
-		fridge.add_child(shelf)
-	
-	# Food items inside the fridge!
-	_create_fridge_food(fridge, fridge_width, fridge_depth)
-	
-	# Freezer door (top) - swung open into the room
-	# Pivot on right edge, positive Y rotation swings door toward +Z (into room)
-	var freezer_door_pivot = Node3D.new()
-	freezer_door_pivot.name = "FreezerDoorPivot"
-	freezer_door_pivot.position = Vector3(fridge_width / 2, fridge_height * 0.82, fridge_depth / 2)
-	freezer_door_pivot.rotation.y = deg_to_rad(100)  # Positive = swings into room
-	fridge.add_child(freezer_door_pivot)
-	
-	var freezer_door = MeshInstance3D.new()
-	var freezer_mesh = BoxMesh.new()
-	freezer_mesh.size = Vector3(fridge_width - 0.1, fridge_height * 0.3, door_thickness)
-	freezer_door.mesh = freezer_mesh
-	freezer_door.position = Vector3(-fridge_width / 2 + 0.05, 0, door_thickness / 2)
-	
-	var door_mat = StandardMaterial3D.new()
-	door_mat.albedo_color = FRIDGE_SILVER
-	door_mat.roughness = 0.2
-	door_mat.metallic = 0.3
-	freezer_door.material_override = door_mat
-	freezer_door_pivot.add_child(freezer_door)
-	
-	# Handle on freezer door
-	_create_fridge_handle(freezer_door, Vector3(-fridge_width / 2 + 0.6, 0, door_thickness / 2 + 0.05))
-	
-	# Main door (bottom) - swung open into the room
-	# Pivot on left edge, negative Y rotation swings door toward +Z (into room)
-	var main_door_pivot = Node3D.new()
-	main_door_pivot.name = "MainDoorPivot"
-	main_door_pivot.position = Vector3(-fridge_width / 2, fridge_height * 0.35, fridge_depth / 2)
-	main_door_pivot.rotation.y = deg_to_rad(-100)  # Negative = swings into room
-	fridge.add_child(main_door_pivot)
-	
-	var main_door = MeshInstance3D.new()
-	var main_mesh = BoxMesh.new()
-	main_mesh.size = Vector3(fridge_width - 0.1, fridge_height * 0.55, door_thickness)
-	main_door.mesh = main_mesh
-	main_door.position = Vector3(fridge_width / 2 - 0.05, 0, door_thickness / 2)
-	main_door.material_override = door_mat
-	main_door_pivot.add_child(main_door)
-	
-	# Door shelves on main door
-	var door_shelf_mat = StandardMaterial3D.new()
-	door_shelf_mat.albedo_color = Color(0.9, 0.9, 0.92)
-	door_shelf_mat.roughness = 0.4
-	
-	for shelf_y in [-0.8, -0.2, 0.4]:
-		var door_shelf = MeshInstance3D.new()
-		var ds_mesh = BoxMesh.new()
-		ds_mesh.size = Vector3(fridge_width - 0.5, 0.3, 0.4)
-		door_shelf.mesh = ds_mesh
-		door_shelf.position = Vector3(fridge_width / 2 - 0.3, shelf_y, door_thickness / 2 + 0.25)
-		door_shelf.material_override = door_shelf_mat
-		main_door_pivot.add_child(door_shelf)
-	
-	# Handle on main door
-	_create_fridge_handle(main_door, Vector3(fridge_width / 2 - 0.6, 0.3, door_thickness / 2 + 0.05))
-	
-	# Light glow effect from inside (optional visual flair)
+	# Light glow effect from inside (visual flair)
 	var fridge_light = OmniLight3D.new()
 	fridge_light.light_color = Color(0.95, 0.98, 1.0)
 	fridge_light.light_energy = 0.5
