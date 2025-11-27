@@ -19,6 +19,15 @@ var navigation_ready: bool = false
 var target_position: Vector3 = Vector3.ZERO
 
 @onready var navigation_agent: NavigationAgent3D = $NavigationAgent3D
+@onready var model: Node3D = $Model
+
+# Animation settings
+@export_group("Animation")
+@export var bounce_height: float = 0.15
+@export var bounce_speed: float = 12.0
+@export var squash_amount: float = 0.08
+var base_model_scale: Vector3 = Vector3(0.8, 0.8, 0.8)  # Match scene scale
+var animation_time: float = 0.0
 
 signal enemy_died(enemy: CharacterBody3D)
 signal enemy_reached_end(enemy: CharacterBody3D)
@@ -68,6 +77,37 @@ func setup_navigation():
 func set_target_position(target: Vector3):
 	target_position = target
 	navigation_agent.target_position = target
+
+func _process(delta: float) -> void:
+	# Procedural march animation
+	if not model:
+		return
+	
+	# Only animate when moving
+	if velocity.length() > 0.1:
+		animation_time += delta * bounce_speed
+		
+		# Bounce up and down (use abs(sin) for a hop effect)
+		var bounce = abs(sin(animation_time)) * bounce_height
+		model.position.y = bounce
+		
+		# Squash and stretch
+		var squash = 1.0 + sin(animation_time * 2.0) * squash_amount
+		model.scale = Vector3(
+			base_model_scale.x / squash,
+			base_model_scale.y * squash,
+			base_model_scale.z / squash
+		)
+		
+		# Face movement direction
+		var flat_velocity = Vector3(velocity.x, 0, velocity.z)
+		if flat_velocity.length() > 0.1:
+			var target_basis = Basis.looking_at(flat_velocity.normalized(), Vector3.UP)
+			model.basis = model.basis.slerp(target_basis, delta * 10.0)
+	else:
+		# Idle - gentle settle back to rest
+		model.position.y = lerp(model.position.y, 0.0, delta * 5.0)
+		model.scale = model.scale.lerp(base_model_scale, delta * 5.0)
 
 func _physics_process(delta):
 	# Don't process until navigation is set up

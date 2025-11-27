@@ -1,13 +1,11 @@
-[gd_scene load_steps=5 format=3 uid="uid://bjlpvt05q24m8"]
+[gd_scene load_steps=4 format=3 uid="uid://bjlpvt05q24m8"]
 
 [ext_resource type="Script" uid="uid://ycs6b4mkktbm" path="res://objects/enemy.gd" id="1_882u1"]
+[ext_resource type="PackedScene" path="res://models/tomato_enemy.glb" id="2_tomato"]
 
-[sub_resource type="SphereMesh" id="SphereMesh_2gpic"]
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_882u1"]
-albedo_color = Color(0.945098, 0, 0.101961, 1)
-
-[sub_resource type="SphereShape3D" id="SphereShape3D_7jlpp"]
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_enemy"]
+radius = 0.5
+height = 1.6
 
 [node name="Enemy" type="CharacterBody3D"]
 collision_layer = 2
@@ -17,9 +15,11 @@ max_health = 300.0
 [node name="NavigationAgent3D" type="NavigationAgent3D" parent="."]
 avoidance_enabled = true
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
-mesh = SubResource("SphereMesh_2gpic")
-surface_material_override/0 = SubResource("StandardMaterial3D_882u1")
+[node name="Model" type="Node3D" parent="."]
+
+[node name="TomatoEnemy" parent="Model" instance=ExtResource("2_tomato")]
+transform = Transform3D(-0.8, 0, 0, 0, 0.8, 0, 0, 0, -0.8, 0, 0, 0)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-shape = SubResource("SphereShape3D_7jlpp")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
+shape = SubResource("CapsuleShape3D_enemy")
