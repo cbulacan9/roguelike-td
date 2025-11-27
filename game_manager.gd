@@ -12,7 +12,7 @@ signal tower_sold(tower: Node3D, refund_amount: int)
 signal tower_selection_changed(tower: Node3D)  # For clicking on placed towers
 
 # Game resources
-var gold: int = 500:
+var gold: int = 10000:
 	set(value):
 		gold = value
 		resource_changed.emit("gold", gold)
@@ -168,7 +168,7 @@ func victory() -> void:
 	game_won.emit()
 
 func reset_game() -> void:
-	gold = 500
+	gold = 10000
 	lives = 20
 	current_wave = 0
 	is_game_over = false

@@ -86,7 +86,6 @@ func spawn_enemy():
 		return
 	
 	var enemy = enemy_scene.instantiate()
-	enemy.global_position = spawn_position.global_position
 	enemy.add_to_group("enemies")
 	
 	# Apply wave scaling
@@ -97,13 +96,17 @@ func spawn_enemy():
 	enemy.enemy_died.connect(_on_enemy_died)
 	enemy.enemy_reached_end.connect(_on_enemy_reached_end)
 	
-	# Add to scene
+	# Add to scene FIRST (required before setting global_position)
 	var level = get_tree().get_first_node_in_group("level")
 	if level and level.has_node("Enemies"):
 		level.get_node("Enemies").add_child(enemy)
 	else:
 		push_error("Could not find Enemies node in level")
+		enemy.queue_free()  # Clean up the orphaned node
 		return
+	
+	# NOW set global_position (node is in tree)
+	enemy.global_position = spawn_position.global_position
 	
 	enemies_spawned_this_wave += 1
 	enemies_alive += 1

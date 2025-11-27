@@ -13,8 +13,10 @@ var is_selected: bool = false
 var attack_timer: float = 0.0
 var current_target: CharacterBody3D = null
 var selection_indicator: MeshInstance3D = null
+var range_indicator: MeshInstance3D = null
 
 @onready var range_area: Area3D = $RangeArea3D
+@onready var projectile_spawn: Marker3D = $ToasterModel/ProjectileSpawn
 
 func _ready():
 	setup_range_area()
@@ -87,15 +89,23 @@ func attack_target():
 
 func spawn_projectile():
 	var projectile = projectile_scene.instantiate()
-	projectile.global_position = global_position + Vector3.UP * 1.0
+	
+	# Set non-global properties before adding to tree
 	projectile.target = current_target
 	projectile.damage = attack_damage
-	# Add to level instead of root
+	
+	# Add to scene tree FIRST (required before setting global_position)
 	var level = get_tree().get_first_node_in_group("level")
 	if level:
 		level.add_child(projectile)
 	else:
 		get_tree().root.add_child(projectile)
+	
+	# NOW set global_position (node is in tree)
+	if projectile_spawn:
+		projectile.global_position = projectile_spawn.global_position
+	else:
+		projectile.global_position = global_position + Vector3.UP * 1.8
 
 func _on_body_entered_range(body):
 	if body.is_in_group("enemies") and !current_target:
@@ -109,10 +119,12 @@ func _on_body_exited_range(body):
 func select() -> void:
 	is_selected = true
 	_show_selection_indicator()
+	_show_range_indicator()
 
 func deselect() -> void:
 	is_selected = false
 	_hide_selection_indicator()
+	_hide_range_indicator()
 
 func _show_selection_indicator() -> void:
 	if selection_indicator:
@@ -142,6 +154,35 @@ func _show_selection_indicator() -> void:
 func _hide_selection_indicator() -> void:
 	if selection_indicator:
 		selection_indicator.visible = false
+
+func _show_range_indicator() -> void:
+	if range_indicator:
+		range_indicator.visible = true
+		return
+	
+	# Create a flat circle to show attack range
+	range_indicator = MeshInstance3D.new()
+	var circle_mesh := CylinderMesh.new()
+	circle_mesh.top_radius = attack_range
+	circle_mesh.bottom_radius = attack_range
+	circle_mesh.height = 0.05
+	circle_mesh.radial_segments = 32
+	range_indicator.mesh = circle_mesh
+	
+	var material := StandardMaterial3D.new()
+	material.albedo_color = Color(0.2, 0.6, 1.0, 0.15)
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	range_indicator.material_override = material
+	
+	range_indicator.position = Vector3(0, 0.1, 0)
+	range_indicator.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(range_indicator)
+
+func _hide_range_indicator() -> void:
+	if range_indicator:
+		range_indicator.visible = false
 
 func get_sell_value() -> int:
 	if tower_data:

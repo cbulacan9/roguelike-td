@@ -23,9 +23,9 @@ func setup_sun():
 	# Angle for good tower defense view
 	sun.rotation_degrees = Vector3(-50, -30, 0)
 	
-	# Light properties
-	sun.light_energy = 1.0
-	sun.light_color = Color(1.0, 0.98, 0.95)
+	# Light properties - warm cartoon kitchen lighting
+	sun.light_energy = 1.2
+	sun.light_color = Color(1.0, 0.95, 0.85)  # Warm yellow tint
 	
 	# Shadows
 	sun.shadow_enabled = enable_shadows
@@ -57,9 +57,10 @@ func setup_environment():
 	environment.background_mode = Environment.BG_SKY
 	environment.sky = sky
 	
-	# Ambient lighting
-	environment.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
-	environment.ambient_light_energy = 0.5
+	# Ambient lighting - brighter for cartoon look
+	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	environment.ambient_light_color = Color(0.9, 0.88, 0.8)  # Warm ambient
+	environment.ambient_light_energy = 0.7
 	
 	# Tone mapping
 	environment.tonemap_mode = Environment.TONE_MAPPER_FILMIC

@@ -39,7 +39,7 @@ func _ready():
 	# Configure navigation agent
 	navigation_agent.path_desired_distance = 0.5
 	navigation_agent.target_desired_distance = 1.5  # Don't trigger "finished" too early
-	navigation_agent.radius = 0.5
+	navigation_agent.radius = 0.5  # Match NavigationMesh agent_radius
 	navigation_agent.height = 2.0
 	navigation_agent.max_speed = speed
 	
@@ -100,10 +100,13 @@ func _process(delta: float) -> void:
 		)
 		
 		# Face movement direction
+		# Note: Adding PI because the tomato model has negative X/Z scale in the scene,
+		# which flips its facing direction 180 degrees
 		var flat_velocity = Vector3(velocity.x, 0, velocity.z)
 		if flat_velocity.length() > 0.1:
-			var target_basis = Basis.looking_at(flat_velocity.normalized(), Vector3.UP)
-			model.basis = model.basis.slerp(target_basis, delta * 10.0)
+			var target_angle = atan2(flat_velocity.x, flat_velocity.z) + PI
+			var current_angle = model.rotation.y
+			model.rotation.y = lerp_angle(current_angle, target_angle, delta * 10.0)
 	else:
 		# Idle - gentle settle back to rest
 		model.position.y = lerp(model.position.y, 0.0, delta * 5.0)

@@ -144,3 +144,38 @@ func mark_path_cells(path_grid_positions: Array[Vector2i]):
 		if pos.x >= 0 and pos.x < grid_size.x and pos.y >= 0 and pos.y < grid_size.y:
 			grid_data[pos.x][pos.y] = CellState.PATH
 			update_cell_visual(pos)
+
+## Marks cells within a world-space bounding box as unbuildable
+## Used for obstacles like counters, furniture, etc.
+func mark_area_unbuildable(world_min: Vector3, world_max: Vector3) -> void:
+	# Convert world bounds to grid coordinates
+	var grid_min = world_to_grid(world_min)
+	var grid_max = world_to_grid(world_max)
+	
+	# Ensure min/max are correct order
+	var x_start = mini(grid_min.x, grid_max.x)
+	var x_end = maxi(grid_min.x, grid_max.x)
+	var y_start = mini(grid_min.y, grid_max.y)
+	var y_end = maxi(grid_min.y, grid_max.y)
+	
+	print("Marking unbuildable area: grid (", x_start, ",", y_start, ") to (", x_end, ",", y_end, ")")
+	
+	for x in range(x_start, x_end + 1):
+		for y in range(y_start, y_end + 1):
+			if x >= 0 and x < grid_size.x and y >= 0 and y < grid_size.y:
+				grid_data[x][y] = CellState.UNBUILDABLE
+				_hide_cell_visual(Vector2i(x, y))
+
+## Hides the visual indicator for unbuildable cells
+func _hide_cell_visual(grid_pos: Vector2i) -> void:
+	var half_grid_size = Vector2(grid_size) * cell_size / 2.0
+	var local_world_pos = Vector3(
+		grid_pos.x * cell_size + cell_size / 2.0 - half_grid_size.x,
+		0,
+		grid_pos.y * cell_size + cell_size / 2.0 - half_grid_size.y
+	)
+	
+	for mesh in cell_meshes:
+		if mesh.position.distance_to(local_world_pos) < 0.1:
+			mesh.visible = false
+			break
