@@ -11,12 +11,14 @@ config_version=5
 [application]
 
 config/name="Kitchen Defense"
+run/main_scene="res://ui/main_menu.tscn"
 config/features=PackedStringArray("4.4", "GL Compatibility")
 config/icon="res://icon.svg"
 
 [autoload]
 
 GameManager="*res://game_manager.gd"
+GameUIManager="*res://ui/game_ui_manager.gd"
 
 [editor_plugins]
 
