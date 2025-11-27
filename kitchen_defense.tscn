@@ -1,17 +1,21 @@
-[gd_scene load_steps=13 format=3 uid="uid://cp4tfby4aqknq"]
+[gd_scene load_steps=15 format=3 uid="uid://cp4tfby4aqknq"]
 
 [ext_resource type="Script" uid="uid://bwsmjhhu8k7ix" path="res://map/camera_controller.gd" id="1_ipvny"]
 [ext_resource type="Script" uid="uid://bfxnrp24xgt2r" path="res://map/map_grid.gd" id="2_uimrl"]
 [ext_resource type="Script" uid="uid://des3dyj0vknou" path="res://map/tower_placement_manager.gd" id="3_be06q"]
-[ext_resource type="PackedScene" uid="uid://cs4fp0c7leat0" path="res://objects/basic_tower.tscn" id="4_fc4gu"]
+[ext_resource type="PackedScene" path="res://ui/build_menu.tscn" id="4_buildmenu"]
 [ext_resource type="Script" uid="uid://dbfl7ml2yywqo" path="res://map/world_lighting.gd" id="6_cyulq"]
 [ext_resource type="Script" uid="uid://dgjcxq27rrxer" path="res://objects/enemy_spawner.gd" id="7_be06q"]
 [ext_resource type="PackedScene" uid="uid://bjlpvt05q24m8" path="res://objects/enemy.tscn" id="8_fc4gu"]
 [ext_resource type="PackedScene" uid="uid://dovh2sqs3wwm6" path="res://ui/resource_display.tscn" id="9_fc4gu"]
+[ext_resource type="PackedScene" path="res://ui/wave_announcement.tscn" id="10_wave"]
+[ext_resource type="PackedScene" path="res://ui/tower_info_panel.tscn" id="11_tower_info"]
 
 [sub_resource type="NavigationMesh" id="NavigationMesh_qb2ax"]
 vertices = PackedVector3Array(-19.25, 0, -19.25, -19.25, 0, 19.25, 19.25, 0, 19.25, 19.25, 0, -19.25)
 polygons = [PackedInt32Array(3, 2, 0), PackedInt32Array(0, 2, 1)]
+geometry_parsed_geometry_type = 1
+geometry_collision_mask = 1
 agent_height = 2.0
 agent_radius = 0.6
 agent_max_climb = 0.5
@@ -35,6 +39,8 @@ script = ExtResource("1_ipvny")
 [node name="NavigationRegion3D" type="NavigationRegion3D" parent="World"]
 navigation_mesh = SubResource("NavigationMesh_qb2ax")
 
+[node name="Towers" type="Node3D" parent="World/NavigationRegion3D"]
+
 [node name="Ground" type="StaticBody3D" parent="World/NavigationRegion3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
 collision_mask = 0
@@ -52,13 +58,11 @@ shape = SubResource("BoxShape3D_c2mfs")
 [node name="MapGrid" type="Node3D" parent="World"]
 script = ExtResource("2_uimrl")
 
-[node name="Towers" type="Node3D" parent="World"]
-
-[node name="TowerPlacementManager" type="Node3D" parent="World" node_paths=PackedStringArray("map_grid", "camera")]
+[node name="TowerPlacementManager" type="Node3D" parent="World" node_paths=PackedStringArray("map_grid", "camera", "navigation_region")]
 script = ExtResource("3_be06q")
-tower_scene = ExtResource("4_fc4gu")
 map_grid = NodePath("../MapGrid")
 camera = NodePath("../Camera3D")
+navigation_region = NodePath("../NavigationRegion3D")
 
 [node name="Enemies" type="Node3D" parent="World"]
 
@@ -88,19 +92,29 @@ spawn_position = NodePath("../PathManager/SpawnPoint1")
 
 [node name="HUD" type="Control" parent="UI"]
 layout_mode = 3
-anchors_preset = 0
-offset_right = 40.0
-offset_bottom = 40.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
 
 [node name="ResourceDisplay" parent="UI/HUD" instance=ExtResource("9_fc4gu")]
 layout_mode = 0
+mouse_filter = 2
 
 [node name="ScoreDisplay" type="MarginContainer" parent="UI/HUD"]
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 40.0
+mouse_filter = 2
 
-[node name="BuildMenu" type="Panel" parent="UI/HUD"]
-layout_mode = 0
-offset_right = 40.0
-offset_bottom = 40.0
+[node name="BuildMenu" parent="UI/HUD" instance=ExtResource("4_buildmenu")]
+layout_mode = 1
+offset_top = -220.0
+
+[node name="WaveAnnouncement" parent="UI/HUD" instance=ExtResource("10_wave")]
+layout_mode = 1
+
+[node name="TowerInfoPanel" parent="UI/HUD" instance=ExtResource("11_tower_info")]
+layout_mode = 1

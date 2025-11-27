@@ -5,8 +5,14 @@ extends Node3D
 @export var attack_rate: float = 1.0  # Attacks per second
 @export var projectile_scene: PackedScene  # Optional: for projectile-based towers
 
+# Tower metadata (set by placement manager)
+var tower_data: TowerData = null
+var grid_position: Vector2i = Vector2i(-1, -1)
+var is_selected: bool = false
+
 var attack_timer: float = 0.0
 var current_target: CharacterBody3D = null
+var selection_indicator: MeshInstance3D = null
 
 @onready var range_area: Area3D = $RangeArea3D
 
@@ -98,3 +104,46 @@ func _on_body_entered_range(body):
 func _on_body_exited_range(body):
 	if body == current_target:
 		current_target = null
+
+# Selection system
+func select() -> void:
+	is_selected = true
+	_show_selection_indicator()
+
+func deselect() -> void:
+	is_selected = false
+	_hide_selection_indicator()
+
+func _show_selection_indicator() -> void:
+	if selection_indicator:
+		selection_indicator.visible = true
+		return
+	
+	# Create a ring/circle indicator below the tower
+	selection_indicator = MeshInstance3D.new()
+	var torus := TorusMesh.new()
+	torus.inner_radius = 0.8
+	torus.outer_radius = 1.0
+	torus.rings = 16
+	torus.ring_segments = 16
+	selection_indicator.mesh = torus
+	
+	var material := StandardMaterial3D.new()
+	material.albedo_color = Color(1.0, 0.9, 0.2, 0.8)
+	material.emission_enabled = true
+	material.emission = Color(1.0, 0.9, 0.2)
+	material.emission_energy_multiplier = 0.5
+	selection_indicator.material_override = material
+	
+	selection_indicator.position = Vector3(0, 0.1, 0)
+	selection_indicator.rotation_degrees.x = 90  # Lay flat
+	add_child(selection_indicator)
+
+func _hide_selection_indicator() -> void:
+	if selection_indicator:
+		selection_indicator.visible = false
+
+func get_sell_value() -> int:
+	if tower_data:
+		return tower_data.get_sell_value()
+	return 0
