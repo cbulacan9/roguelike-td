@@ -6,7 +6,7 @@ extends Node3D
 @export var base_enemies_per_wave: int = 10
 @export var spawn_position: Node3D
 @export var delay_between_waves: float = 5.0
-@export var max_waves: int = 0  # 0 = infinite waves
+@export var max_waves: int = 20  # Set to 0 for infinite waves
 
 # Wave scaling configuration
 @export_group("Wave Scaling")
@@ -54,6 +54,7 @@ func start_next_wave():
 	# Check if we've hit the wave limit
 	if max_waves > 0 and current_wave >= max_waves:
 		all_waves_complete.emit()
+		GameManager.victory()  # Trigger victory screen
 		print("All waves complete!")
 		return
 	
